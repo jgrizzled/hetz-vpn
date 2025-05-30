@@ -4,5 +4,8 @@
   "vpn_allowed_ips": ["0.0.0.0/0", "::/0"],
   "location": "sin",
   "hcloud_token": "your-hcloud-token",
-  "vpn_port": 51820
+  "vpn_port": 51820,
+  "ssh_port": 22,
+  "instance_type": "cpx11",
+  "name": "hetzvpn"
 }

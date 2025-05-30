@@ -70,9 +70,10 @@ runcmd:
   # Remove default services we don't need
   - firewall-cmd --permanent --zone=public --remove-service=dhcpv6-client
   - firewall-cmd --permanent --zone=public --remove-service=cockpit
-  - firewall-cmd --permanent --zone=public --add-service=ssh
+  # Add SSH port
+  - firewall-cmd --permanent --zone=public --add-port=${ssh_port}/tcp
   # Add rate limiting for SSH (10 connections per minute)
-  - firewall-cmd --permanent --zone=public --add-rich-rule='rule service name="ssh" accept limit value="10/m"'
+  - firewall-cmd --permanent --zone=public --add-rich-rule='rule port port="${ssh_port}" protocol="tcp" accept limit value="10/m"'
   # Rate limit ICMP (ping) - 1 ping per second
   - firewall-cmd --permanent --zone=public --add-rich-rule='rule protocol value="icmp" accept limit value="1/s"'
 

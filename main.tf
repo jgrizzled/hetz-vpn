@@ -50,6 +50,12 @@ variable "hcloud_token" {
   sensitive   = true
 }
 
+variable "instance_type" {
+  type        = string
+  description = "Hetzner Cloud instance type"
+  default     = "cpx11"
+}
+
 locals {
   # Hetzner datacenter mappings
   datacenter_config = {
@@ -145,7 +151,7 @@ resource "random_string" "identity_file" {
 resource "hcloud_server" "server" {
   name               = var.name
   image              = "alma-9"
-  server_type        = "cpx11"
+  server_type        = var.instance_type
   location           = var.location
   firewall_ids       = [hcloud_firewall.main.id]
   user_data          = data.cloudinit_config.config.rendered
@@ -155,7 +161,6 @@ resource "hcloud_server" "server" {
   # Avoid recreating the server for these, should change these manually (ansible, etc)
   lifecycle {
     ignore_changes = [
-      location,
       user_data,
       image,
       ssh_keys
@@ -289,4 +294,8 @@ output "name" {
 
 output "vpn_port" {
   value = var.vpn_port
+}
+
+output "ssh_port" {
+  value = var.ssh_port
 }

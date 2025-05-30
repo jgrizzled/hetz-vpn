@@ -34,6 +34,7 @@ Edit `config.auto.tfvars.json` with your settings:
 - `location`: Server location (ash, hil, fsn1, nbg1, hel1, sin)
 - `ssh_allowed_ips`: IPs allowed to SSH to the server (default: all)
 - `vpn_allowed_ips`: IPs allowed to connect to VPN (default: all)
+- `instance_type`: Hetzner Cloud instance type (default: cpx11)
 
 ### 3. Bootstrap
 
