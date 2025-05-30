@@ -11,7 +11,15 @@ Spin up a Wireguard VPN server on Hetzner with Terraform and Ansible.
 
 ## Initial Setup
 
-### 1. Configuration
+### 1. Create Hetzner API token
+
+- Go to https://console.hetzner.cloud/projects
+- Create a new project
+- Click on the project
+- Navigate to Security -> API Tokens
+- Generate new token with Read & Write access
+
+### 2. Configuration
 
 Copy the example configuration file and fill in your details:
 
@@ -27,7 +35,7 @@ Edit `config.auto.tfvars.json` with your settings:
 - `ssh_allowed_ips`: IPs allowed to SSH to the server (default: all)
 - `vpn_allowed_ips`: IPs allowed to connect to VPN (default: all)
 
-### 2. Bootstrap
+### 3. Bootstrap
 
 Run the bootstrap script to create and configure your VPN server:
 
@@ -43,7 +51,7 @@ This will:
 4. Create a local `wg0.conf` file with the server configuration
 5. Save server keys to `server_private.key` and `server_public.key`
 
-Next, configure clients, then run `./sync.sh` to sync the server configuration.
+Next, add clients, then run `./sync.sh` to sync the server configuration.
 
 ## Adding Clients
 
@@ -58,19 +66,8 @@ Use the provided script to automatically generate client configurations:
 
 This will:
 
-- Generate a new client configuration file (e.g., `john-laptop.conf`)
-- Create new keys for the client
-- Display the public key to add to your server configuration
-
-### Adding Clients to Server
-
-For each client, add a `[Peer]` section to your `wg0.conf` file:
-
-```ini
-[Peer]
-PublicKey = <CLIENT_PUBLIC_KEY>
-AllowedIPs = 10.0.0.2/32
-```
+- Generate a new client configuration file (e.g., `john-laptop.conf`) to be imported into your Wireguard client
+- Add the client to server configuration in wg0.conf
 
 ### Sync Configuration
 
@@ -79,12 +76,6 @@ After adding clients, sync the configuration to the server:
 ```bash
 ./sync.sh
 ```
-
-This will:
-
-1. Upload the updated `wg0.conf` to the server
-2. Restart the Wireguard service
-3. Display the current VPN status
 
 ## Cleanup
 
