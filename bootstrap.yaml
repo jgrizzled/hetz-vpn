@@ -1,0 +1,92 @@
+---
+- name: Bootstrap Wireguard VPN Server
+  hosts: all
+  become: yes
+  vars:
+    wireguard_interface: wg0
+    wireguard_port: "{{ vpn_port | default(51820) }}"
+    wireguard_subnet: "10.0.0.0/24"
+    wireguard_server_ip: "10.0.0.1/24"
+
+  tasks:
+    - name: Check if server private key exists
+      stat:
+        path: /etc/wireguard/server_private.key
+      register: server_private_key
+
+    - name: Generate server private key if it doesn't exist
+      shell: wg genkey > /etc/wireguard/server_private.key
+      when: not server_private_key.stat.exists
+
+    - name: Set permissions on server private key
+      file:
+        path: /etc/wireguard/server_private.key
+        mode: "0600"
+        owner: root
+        group: root
+
+    - name: Generate server public key
+      shell: wg pubkey < /etc/wireguard/server_private.key > /etc/wireguard/server_public.key
+      args:
+        creates: /etc/wireguard/server_public.key
+
+    - name: Set permissions on server public key
+      file:
+        path: /etc/wireguard/server_public.key
+        mode: "0644"
+        owner: root
+        group: root
+
+    - name: Read server private key
+      slurp:
+        src: /etc/wireguard/server_private.key
+      register: server_private_key_content
+
+    - name: Read server public key
+      slurp:
+        src: /etc/wireguard/server_public.key
+      register: server_public_key_content
+
+    - name: Display server public key for client configuration
+      debug:
+        msg: |
+          Server setup complete!
+
+          Server Public Key: {{ server_public_key_content.content | b64decode | trim }}
+
+    - name: Create initial wg0.conf if it doesn't exist locally
+      delegate_to: localhost
+      become: no
+      copy:
+        dest: "./wg0.conf"
+        content: |
+          [Interface]
+          PrivateKey = {{ server_private_key_content.content | b64decode | trim }}
+          Address = {{ wireguard_server_ip }}
+          ListenPort = {{ wireguard_port }}
+          PostUp = iptables -A FORWARD -i %i -j ACCEPT; iptables -A FORWARD -o %i -j ACCEPT; iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
+          PostDown = iptables -D FORWARD -i %i -j ACCEPT; iptables -D FORWARD -o %i -j ACCEPT; iptables -t nat -D POSTROUTING -o eth0 -j MASQUERADE
+
+          # Add client configurations below
+          # Example:
+          # [Peer]
+          # PublicKey = <CLIENT_PUBLIC_KEY>
+          # AllowedIPs = 10.0.0.2/32
+        force: no
+
+    - name: Save server keys to local files for reference
+      delegate_to: localhost
+      become: no
+      copy:
+        content: "{{ item.content | b64decode }}"
+        dest: "./{{ item.filename }}"
+        mode: "0600"
+      loop:
+        - {
+            content: "{{ server_private_key_content.content }}",
+            filename: "server_private.key",
+          }
+        - {
+            content: "{{ server_public_key_content.content }}",
+            filename: "server_public.key",
+          }

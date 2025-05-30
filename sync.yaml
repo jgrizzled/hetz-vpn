@@ -1,0 +1,52 @@
+---
+- name: Sync Wireguard Configuration
+  hosts: all
+  become: yes
+  vars:
+    wireguard_interface: wg0
+
+  tasks:
+    - name: Check if local wg0.conf exists
+      delegate_to: localhost
+      become: no
+      stat:
+        path: "./wg0.conf"
+      register: local_wg_conf
+
+    - name: Fail if local wg0.conf doesn't exist
+      fail:
+        msg: "Local wg0.conf file not found. Please create it first with your Wireguard configuration."
+      when: not local_wg_conf.stat.exists
+
+    - name: Copy Wireguard configuration to server
+      copy:
+        src: "./wg0.conf"
+        dest: "/etc/wireguard/wg0.conf"
+        owner: root
+        group: root
+        mode: "0600"
+        backup: yes
+      notify:
+        - restart wireguard
+
+    - name: Enable and start Wireguard service
+      systemd:
+        name: "wg-quick@{{ wireguard_interface }}"
+        enabled: yes
+        state: started
+        daemon_reload: yes
+
+    - name: Check Wireguard status
+      command: wg show
+      register: wg_status
+      changed_when: false
+
+    - name: Display Wireguard status
+      debug:
+        var: wg_status.stdout_lines
+
+  handlers:
+    - name: restart wireguard
+      systemd:
+        name: "wg-quick@{{ wireguard_interface }}"
+        state: restarted

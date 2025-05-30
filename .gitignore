@@ -1,0 +1,25 @@
+# Terraform
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
+terraform.tfvars
+terraform.tfvars.json
+config.auto.tfvars.json
+
+# Wireguard configurations
+wg0.conf
+*.conf
+server_private.key
+server_public.key
+client-private.key
+client-public.key
+
+# Ansible
+*.retry
+
+# General
+.DS_Store
+*.log
+tmp/
+temp/

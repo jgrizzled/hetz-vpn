@@ -1,0 +1,8 @@
+{
+  "ssh_public_key": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQC81234567890",
+  "ssh_allowed_ips": ["0.0.0.0/0", "::/0"],
+  "vpn_allowed_ips": ["0.0.0.0/0", "::/0"],
+  "location": "sin",
+  "hcloud_token": "your-hcloud-token",
+  "vpn_port": 51820
+}
